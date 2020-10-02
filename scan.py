@@ -79,6 +79,8 @@ class NetworkScanner():
         Returns
             nicely formatted table string
         """
+        if len(items) == 0:
+            return
         header = items[0].keys()
         rows =  [item.values() for item in items]
         return tabulate(rows, header,tablefmt="fancy_grid")
