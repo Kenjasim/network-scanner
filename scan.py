@@ -1,7 +1,6 @@
 from scapy.all import ARP, Ether, srp
-import socket, argparse
+import socket, argparse, time
 from tabulate import tabulate
-import time
 
 class NetworkScanner():
     
@@ -88,7 +87,6 @@ class NetworkScanner():
 if __name__ == "__main__":
     # Get the start time to see how long the program takes
     start_time = time.time()
-
 
     # Create the parser
     arg_parser = argparse.ArgumentParser(description='Execute a host scan on a network')
