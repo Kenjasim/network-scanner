@@ -34,7 +34,7 @@ port scans:
   -pS <ip_address>  Run a SYN port scan on a host
 
 service scans:
-  -sC <ip_address>  Try to connect to open ports on a host and deetct application
+  -sC <ip_address>  Try to connect to open ports on a host and detect application
 
 ```
 

@@ -185,7 +185,7 @@ if __name__ == "__main__":
     servicescans = arg_parser.add_argument_group('service scans')
 
     # Add the arguments
-    servicescans.add_argument('-sC',metavar='<ip_address>', type=str, help='Try to connect to open ports on a host and deetct application')
+    servicescans.add_argument('-sC',metavar='<ip_address>', type=str, help='Try to connect to open ports on a host and detect application')
 
     #Responses
     responses = []
