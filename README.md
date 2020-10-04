@@ -15,6 +15,8 @@ pip install -r requirements.txt
 First you can run the command with the `-h` flag to get to the help screen
 
 ```shell
+$ python scan.py -h
+
 usage: scan.py [-h] [-hA <ip_network>] [-hP <ip_network>] [-pC <ip_address>] [-pS <ip_address>]
                [-sC <ip_address>]
 
