@@ -1,6 +1,5 @@
 from scapy.all import IP, TCP, srp
 import socket
-
 class PortScan():
 
     @staticmethod
@@ -39,3 +38,33 @@ class PortScan():
             pass
         finally:
             s.close()
+
+    @staticmethod
+    def service_detetction(ip,port, output):
+        """
+        Do a service port scan
+
+        Keyword Arguments
+            ip - ip address of host
+            ports - the ports to connect to as a dict
+            output - list to append to
+        """
+
+        # Create a new socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket.setdefaulttimeout(1)
+
+        # Try to connect to the port
+        result = s.connect_ex((str(ip), port))
+        s.close()
+
+        # If there has been a successful connection
+        if result == 0:
+            try:
+                service = socket.getservbyport(port)
+            except OSError:
+                service = "Could not detect"
+
+            output.append({"ip": ip, "port": port, "service": service})
+            
+        
