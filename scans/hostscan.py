@@ -7,9 +7,7 @@ class HostScan():
     def arp_scan(ip, result):
 
 
-        #TODO Get IP address using some way: https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib
-        # Port over to scan
-        # thread and run
+        #TODO Get IP address using some way: https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib Port over to scan thread and run
         HDWR_TYPE = 0x0001
         PROTO = 0x0800
         HDWR_LEN = 0x06
