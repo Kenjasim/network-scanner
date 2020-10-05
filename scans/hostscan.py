@@ -22,7 +22,6 @@ class HostScan():
         # Get the answered packets and append to devices
         answered = result[0]
 
-        print("Found {0} up hosts on network {1}".format(len(answered), ip_net))
         devices = []
         for _,recieved in answered:
             d = {}
@@ -85,4 +84,4 @@ class HostScan():
         response = subprocess.call(cmd, shell=True)
 
         if response == 0:
-            result.append({"ip": str(ip), "hostname": HostScan.get_hostname(str(ip))})
+            result.append({"ip": str(ip), "hostname": HostScan.get_hostname(str(ip)), "mac": ""})
