@@ -14,12 +14,32 @@ class Scans():
         Keyword Arguments
             ip_net - the ip network to scan
         """
-        
-        #ARP Scannner
-        devices = HostScan.host_detetction(ip_net)
 
-        # Return the devices found
-        return devices
+        # Get the hosts as a list
+        ipnetwork = ipaddress.ip_network(ip_net)
+
+        # Get a list of all hosts on the network
+        hosts = list(ipnetwork.hosts())
+
+        # Add a list of threads
+        threads = []
+
+        #Result
+        result = []
+
+        # Itterate over hosts and check which ones are up
+        executor = ThreadPoolExecutor(max_workers=256)
+        for ip in hosts:
+            h1 = executor.submit(HostScan.arp_scan, ip, result)
+            threads.append(h1)
+
+        # Lock the main thread until they finish running
+        for thread in threads:
+            thread.result()
+
+        # Return the list
+        print ("Found {0} up hosts on network {1}".format(len(result), ip_net))
+        return result
 
     @staticmethod
     def ping_scan(ip_net):
@@ -53,11 +73,11 @@ class Scans():
         # Lock the main thread until they finish running
         for thread in threads:
             thread.result()
-        
+
         # Return the list
         print ("Found {0} up hosts on network {1}".format(len(result), ip_net))
         return result
-    
+
     @staticmethod
     def socket_scan(ip):
         """
@@ -85,7 +105,7 @@ class Scans():
         # Lock the main thread until they finish running
         for thread in threads:
             thread.result()
-        
+
         print ("Found {0} open ports on ip {1}".format(len(output), ip))
         # Return all the open ports
         ports = [{"port": p, "service": PortScan.get_service_name(ip, p)} for p in output]
@@ -98,7 +118,7 @@ class Scans():
 
         Keyword Arguments
             ip - the host to scan
-        
+
         Returns
             dict of open ports
         """
@@ -119,7 +139,7 @@ class Scans():
 
         output = ServiceScan().scan(ip)
         return output
-    
+
 
 
 def create_table(items):
@@ -207,7 +227,7 @@ if __name__ == "__main__":
     for host in hosts:
         print("Host {0} is up".format(host["ip"]))
         print("Hostname: {0} MAC: {1}".format(host["hostname"],host["mac"]))
-    
+
     # Print port or service info
     if extra:
         print ("\nFound {0} open ports ".format(len(responses)))
