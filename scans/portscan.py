@@ -1,4 +1,4 @@
-from scapy.all import IP, TCP, srp
+# from scapy.all import IP, TCP, srp
 import socket
 class PortScan():
 
@@ -18,7 +18,7 @@ class PortScan():
             if received[TCP].flags == "SA":
                 ports.append(received[TCP].sport)
 
-        result = [{"ip": ip, "ports": p} for p in ports]
+        result = [{"ports": p, "service": PortScan.get_service_name(ip, p)} for p in ports]
         return result
 
     @staticmethod
@@ -40,31 +40,28 @@ class PortScan():
             s.close()
 
     @staticmethod
-    def service_detetction(ip,port, output):
+    def get_service_name(ip, port):
         """
-        Do a service port scan
+        Get the service name from the port
 
         Keyword Arguments
-            ip - ip address of host
-            ports - the ports to connect to as a dict
-            output - list to append to
-        """
+            socket - the socket running on the network
+            port - port to scan
 
-        # Create a new socket
+        Returns
+            serice - the service as string
+        """
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         socket.setdefaulttimeout(1)
+        s.connect((str(ip), port))
+        # Get the service by port
+        try:
+            service = socket.getservbyport(port)
+        except OSError:
+            service = "Could not detect"
 
-        # Try to connect to the port
-        result = s.connect_ex((str(ip), port))
-        s.close()
+        return service
 
-        # If there has been a successful connection
-        if result == 0:
-            try:
-                service = socket.getservbyport(port)
-            except OSError:
-                service = "Could not detect"
-
-            output.append({"ip": ip, "port": port, "service": service})
+    
             
         
