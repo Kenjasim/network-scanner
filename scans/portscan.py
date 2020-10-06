@@ -1,4 +1,4 @@
-from scapy.all import IP, TCP, srp
+# from scapy.all import IP, TCP, srp
 import socket
 class PortScan():
 

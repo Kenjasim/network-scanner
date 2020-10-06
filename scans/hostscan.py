@@ -47,9 +47,12 @@ class HostScan():
         s.send(packet)
         packet = s.recv(65565)
 
-
+        # Collect the ethernet header
         eth_head = packet[0:14]
-        (_, eth_hwsrc, _) = unpack("!6s6s2s", eth_head)
+        (_, eth_hwsrc, eth_type) = unpack("!6s6s2s", eth_head)
+
+        if eth_type == ETH_TYPE:
+            print ("hello")
 
         mac = ':'.join(eth_hwsrc.hex()[i:i+2] for i in range(0,12,2))
         print(mac)
@@ -93,3 +96,5 @@ class HostScan():
 
         if response == 0:
             result.append({"ip": str(ip), "hostname": HostScan.get_hostname(str(ip)), "mac": ""})
+
+    

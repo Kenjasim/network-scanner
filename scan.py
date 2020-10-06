@@ -2,7 +2,7 @@ import time, argparse, ipaddress, sys
 from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor
 
-from scans import HostScan, PortScan, ServiceScan
+from scans import HostScan, PortScan, ServiceScan, ARPScan
 
 class Scans():
 
@@ -15,31 +15,8 @@ class Scans():
             ip_net - the ip network to scan
         """
 
-        # Get the hosts as a list
-        ipnetwork = ipaddress.ip_network(ip_net)
-
-        # Get a list of all hosts on the network
-        hosts = list(ipnetwork.hosts())
-
-        # Add a list of threads
-        threads = []
-
-        #Result
-        result = []
-
-        # Itterate over hosts and check which ones are up
-        executor = ThreadPoolExecutor(max_workers=256)
-        for ip in hosts:
-            h1 = executor.submit(HostScan.arp_scan, ip, result)
-            threads.append(h1)
-
-        # Lock the main thread until they finish running
-        for thread in threads:
-            thread.result()
-
-        # Return the list
-        print ("Found {0} up hosts on network {1}".format(len(result), ip_net))
-        return result
+        output = ARPScan().run(ip_net)
+        return output
 
     @staticmethod
     def ping_scan(ip_net):
