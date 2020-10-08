@@ -127,56 +127,52 @@ class ARPScan():
             output.append(host_dict)
 
 
-    def send(self, packet, target_ip, i = 0):
+    def send(self, packet, target_ip, i = 0,):
 
         i = i + 1
     
-        for _ in range(0,2):
-            try:
-                print(target_ip)
-                print("_______________________________")
-                s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(3))
+        try:
+            s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(3))
 
-                #Get and bind the right interface
-                mac_addr = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
-                iface = self.interfaces[mac_addr]
-                s.bind((iface, 0))
-                
-                # Send the packet
-                s.send(packet)
+            #Get and bind the right interface
+            mac_addr = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+            iface = self.interfaces[mac_addr]
+            s.bind((iface, 0))
+            
+            # Send the packet
+            s.send(packet)
 
-                #Recieve the packets
-                rawSocket = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.htons(0x0806))
-                rawSocket.settimeout(0.5)
-                rec_packet = rawSocket.recvfrom(2048)
+            #Recieve the packets
+            rawSocket = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.htons(0x0806))
+            rawSocket.settimeout(0.5)
+            rec_packet = rawSocket.recvfrom(2048)
 
-                # Collect the ethernet header
-                eth_head = rec_packet[0][0:14]
-                (_, eth_hwsrc, eth_type) = unpack("!6s6s2s", eth_head)
+            # Collect the ethernet header
+            eth_head = rec_packet[0][0:14]
+            (_, eth_hwsrc, eth_type) = unpack("!6s6s2s", eth_head)
 
-                # Collect arp header
-                arp_head = rec_packet[0][14:42]
-                (_,_,_,_,arp_op,_,arp_ip,_,_) = unpack('2s2s1s1s2s6s4s6s4s',arp_head)
-                print(eth_type.hex(), arp_op.hex())
-                print("_______________________________________")
+            # Collect arp header
+            arp_head = rec_packet[0][14:42]
+            
+            (_,_,_,_,arp_op,_,arp_ip,_,_) = unpack('2s2s1s1s2s6s4s6s4s',arp_head)
+            # Check if an arp packet
+            if eth_type.hex() == "0806":
 
-                # Check if an arp packet
-                if eth_type.hex() == "0806" and arp_op.hex() == "0002":
+                #MAC Address
+                mac = ':'.join(eth_hwsrc.hex()[i:i+2] for i in range(0,12,2))
 
-                    #MAC Address
-                    mac = ':'.join(eth_hwsrc.hex()[i:i+2] for i in range(0,12,2))
+                #Convert to ip
+                ip = socket.inet_ntoa(arp_ip)
 
-                    #Convert to ip
-                    ip = socket.inet_ntoa(arp_ip)
+                # Check if response is correct
+                if [int(i) for i in ip.split(".")] == [int(i) for i in target_ip.split(".")] and arp_op.hex() == "0002":
+                    return {"ip": ip, "mac": mac, "hostname": socket.gethostbyaddr(ip)[0]}
+                else: 
+                    if i != 15:
+                        return(self.send(packet, target_ip, i))
+        except Exception:
+            return 
 
-                    # Check if response is correct
-                    if [int(i) for i in ip.split(".")] == [int(i) for i in target_ip.split(".")]:
-                        return {"ip": ip, "mac": mac, "hostname": socket.gethostbyaddr(ip)[0]}
-                    else: 
-                        if i != 15:
-                            return(self.send(packet, target_ip, i))
-            except Exception:
-                continue
 
 
     def get_interfaces(self):
