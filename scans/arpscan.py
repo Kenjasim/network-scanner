@@ -1,6 +1,7 @@
 from struct import pack, unpack
 import socket, binascii, uuid, subprocess, os, re, ipaddress, time
 from concurrent.futures import ThreadPoolExecutor
+from common import parse_ip_input
     
 
 
@@ -26,12 +27,13 @@ class ARPScan():
         # Get all the interfaces
         self.interfaces = self.get_interfaces()
 
-        # Get the hosts as a list
-        ipnetwork = ipaddress.ip_network(ip_net)
+        # parse ip to return hosts
+        hosts = parse_ip_input(ip_net)
 
-        # Get a list of all hosts on the network
-        hosts = list(ipnetwork.hosts())
-
+        # If incorrect then return
+        if hosts == None:
+            return
+        
         #Result
         result = []
 
@@ -128,6 +130,9 @@ class ARPScan():
 
 
     def send(self, packet, target_ip, i = 0,):
+        """
+        Send the ARP packet for detetction later
+        """
 
         i = i + 1
     
