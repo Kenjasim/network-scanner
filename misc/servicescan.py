@@ -1,8 +1,5 @@
-# from scapy.all import IP, TCP, srp
-import socket
+import socket, re
 from concurrent.futures import ThreadPoolExecutor
-
-from common import parse_ip_input
 
 PROBES=['\r\n\r\n',
 'GET / HTTP/1.0\r\n\r\n',
@@ -23,50 +20,43 @@ PROBES=['\r\n\r\n',
 '\x41\0\0\0\x3a\x30\0\0\xff\xff\xff\xff\xd4\x07\0\0\0\0\0\0test.$cmd\0\0\0\0\0\xff\xff\xff\xff\x1b\0\0\0\x01serverStatus\0\0\0\0\0\0\0\xf0\x3f\0'
 ]
 
-class PortScan():
 
-    def run(self, hosts, probe):
+class ServiceScan():
+
+    def scan(self, ip):
         """
-        Run a port scan using sockets
-
-        Keyword Arguments
-        hosts - hosts which the user wants to scan ports with
-        probe - whether we want to probe the ports for more information
-
-        Returns
-            lists of tuples with the host info and the port info
+        Run a service scan
         """
-
         # Manage multiple threads
         threads = []
 
-        # List all the open ports
-        ports = []
+        # List to place the open ports
+        output = []
 
         # Loop through each port and make a thread
         executor = ThreadPoolExecutor(max_workers=100)
-        for host in hosts:
-            # List to place the open ports
-            open_ports = []
+        for i in range(10000):
+            p1 = executor.submit(self.service_detetction, ip, i, output)
+            threads.append(p1)
 
-            for i in range(10000):
-                p1 = executor.submit(self.port_connect, str(host["ip"]), i, open_ports, probe)
-                threads.append(p1)
+        # Lock the main thread until they finish running
+        for thread in threads:
+            thread.result()
+        
+       
+        # Return all the open ports
+        return output
 
-            # Lock the main thread until they finish running
-            for thread in threads:
-                thread.result()
-            
-            # Format all the open ports
-            host_port_tuple = (host, open_ports)
-            ports.append(host_port_tuple)
-            
-        return ports
-
-    def port_connect(self, ip, port, output, probe=False):
+    def service_detetction(self, ip , port, output):
         """
-        Tries to connect to a port to see if it is open
+        Do a service port scan
+
+        Keyword Arguments
+            ip - ip address of host
+            ports - the ports to connect to as a dict
+            output - list to append to
         """
+
         # Create a new socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         socket.setdefaulttimeout(2)
@@ -74,32 +64,30 @@ class PortScan():
         # Try to connect to the port
         result = s.connect_ex((str(ip), port))
         s.close()
-        
-        # if we could connect
+
+        # If there has been a successful connection
         if result == 0:
+            # Get the service name
+            service = self.get_service_name(socket, port)
 
-            #Build the dictionaries
-            d = {"port": port, "service": PortScan.get_service_name(ip, port, socket)}
+            # Collect banners
+            info = []
 
-            # If a service scan is requested then do it with the probes
-            if probe:
-                info = []
+            for probe in PROBES:
+                banner = self.bannergrabbing(ip, port, probe)
+                if banner:
+                    info.append(banner)
 
-                #Try to probe the port with individual probes
-                for probe in PROBES:
-                    
-                    banner = self.banner_grabbing(ip, port, probe)
-                    if banner:
-                        info.append(banner)
-
-                    if len(info) > 0:
-                        d["banners"] = info
-                    else:
-                        d["banners"] = "could not extract"
+            d = {"port": port, "service": service}
+            if len(info) > 0:
+                d["info"] = info
+            else:
+                d["info"] = ""
 
             output.append(d)
 
-    def banner_grabbing(self, ip, port, probe):
+       
+    def bannergrabbing(self, ip, port, probe):
         '''
         Connect to process and return application banner
         '''
@@ -115,10 +103,8 @@ class PortScan():
             return None
         finally:
             s.close()
-       
-
-    @staticmethod
-    def get_service_name(ip, port, socket):
+    
+    def get_service_name(self, socket, port):
         """
         Get the service name from the port
 
@@ -136,9 +122,3 @@ class PortScan():
             service = "Could not detect"
 
         return service
-
-       
-    
-    
-            
-        
