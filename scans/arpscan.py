@@ -50,9 +50,6 @@ class ARPScan():
         for thread in threads:
             thread.result()
 
-        # for ip in hosts:
-        #     self.scan(str(ip), result)
-
         # Return the list
         return result
 
